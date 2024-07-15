@@ -1,0 +1,60 @@
+module.py
+from django.db import models  
+class Course(models.Model): 
+    course_name = models.CharField(max_length=100) 
+    course_code = models.CharField(max_length=10) 
+    course_credits = models.IntegerField() 
+ 
+    def __str__(self): 
+        return self.course_name 
+ 
+admin.py  
+from django.contrib import admin 
+from ap1.models import Course  
+# Register your models here. 
+admin.site.register(Course) 
+ 
+views.py 
+from django.http import HttpResponse 
+from .models import Course 
+import csv 
+from reportlab.pdfgen import canvas 
+ 
+def construct_csv_from_model(request): 
+    courses = Course.objects.all() 
+    response = HttpResponse(content_type="text/csv") 
+    response['Content-Disposition'] = 'attachment; filename="courses_data.csv"' 
+    writer = csv.writer(response) 
+    writer.writerow(["Course Name", "Course Code", "Credits"]) 
+    for course in courses: 
+        writer.writerow([course.course_name, course.course_code, course.course_credits]) 
+    return response 
+ 
+def construct_pdf_from_model(request): 
+    courses = Course.objects.all() 
+    response = HttpResponse(content_type="application/pdf") 
+    response['Content-Disposition'] = 'attachment; filename="courses_data.pdf"' 
+    c = canvas.Canvas(response) 
+    c.drawString(70, 720, "Course Name") 
+    c.drawString(170, 720, "Course Code") 
+    c.drawString(270, 720, "Credits")    
+    y = 660 
+    for course in courses: 
+        c.drawString(70, y, course.course_name) 
+        c.drawString(170, y, course.course_code) 
+        c.drawString(270, y, str(course.course_credits)) 
+        y = y - 60 
+    c.showPage() 
+    c.save() 
+    return response 
+ 
+urls.py  
+from django.contrib import admin 
+from django.urls import path 
+from ap1.views import construct_csv_from_model, construct_pdf_from_model 
+ 
+urlpatterns = [ 
+    path('admin/', admin.site.urls), 
+    path('courses/csv/', construct_csv_from_model, name='course_csv'), 
+    path('courses/pdf/', construct_pdf_from_model, name='course_pdf'), 
+] 
