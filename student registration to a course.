@@ -1,0 +1,141 @@
+module.py
+from django.db import models 
+class Course(models.Model): 
+    course_code = models.CharField(max_length=40) 
+    course_name = models.CharField(max_length=100) 
+    course_credits = models.IntegerField() 
+ 
+class Student(models.Model): 
+    student_usn = models.CharField(max_length=20) 
+    student_name = models.CharField(max_length=100) 
+    student_sem = models.IntegerField() 
+    enrolment = models.ManyToManyField(Course) 
+ 
+views.py 
+ 
+from django.shortcuts import render, HttpResponse 
+from .models import Student, Course 
+ 
+def reg(request): 
+    if request.method == "POST": 
+        sid = request.POST.get("sname") 
+        cid = request.POST.get("cname") 
+        student = Student.objects.get(id=sid) 
+        course = Course.objects.get(id=cid) 
+        res = student.enrolment.filter(id=cid) 
+        if res: 
+            return HttpResponse("<h1>Student already enrolled</h1>") 
+        student.enrolment.add(course) 
+        return HttpResponse("<h1>Student enrolled successfully</h1>") 
+    else: 
+        students = Student.objects.all() 
+        courses = Course.objects.all() 
+        return render(request, "reg.html", {"students": students, "courses": 
+courses}) 
+ 
+def enrollment_list(request): 
+    students = Student.objects.all() 
+    enrollment_data = [] 
+    for student in students: 
+        courses = student.enrolment.all()  
+        enrollment_data.append({ 
+            'student_name': student.student_name, 
+            'courses': courses, 
+        }) 
+    return render(request, "enrollment_list.html", {"enrollment_data": 
+enrollment_data}) 
+  
+In Application folder create forms.py file  and include the below code  
+ 
+forms.py  
+ 
+from django import forms 
+from .models import Student 
+ 
+class StudentForm(forms.ModelForm): 
+    class Meta: 
+        model = Student 
+        exclude = ['enrolment'] 
+ 
+Under templates include two files reg.html and enrollment_list.html  
+ 
+reg.html  
+<!DOCTYPE html> 
+<html> 
+<body> 
+<form method="post" action=""> 
+{% csrf_token %} 
+Student Name 
+<select name="sname"> 
+    {% for student in students %} 
+        <option value="{{ student.id }}">{{ student.student_name }}</option> 
+    {% endfor %} 
+</select><br> 
+Course Name 
+<select name="cname"> 
+    {% for course in courses %} 
+        <option value="{{ course.id }}">{{ course.course_name }}</option> 
+    {% endfor %} 
+</select><br> 
+<input type="submit" value="Enroll"> 
+</form> 
+</body> 
+</html> 
+ 
+ 
+
+enrollment_list.html  
+<!DOCTYPE html> 
+<html> 
+<head> 
+    <title>Enrollment List</title> 
+</head> 
+<body> 
+    <h1>Enrollment List</h1> 
+    <table border="1"> 
+        <thead> 
+            <tr> 
+                <th>Student Name</th> 
+                <th>Enrolled Courses</th> 
+            </tr> 
+        </thead> 
+        <tbody> 
+            {% for enrollment in enrollment_data %} 
+                <tr> 
+                    <td>{{ enrollment.student_name }}</td> 
+                    <td> 
+                        <ul> 
+                            {% for course in enrollment.courses %} 
+                               <li>{{ course.course_name }} ({{course.course_code }})</li> 
+                            {% endfor %} 
+                        </ul> 
+                    </td> 
+                </tr> 
+            {% endfor %} 
+        </tbody> 
+    </table> 
+</body> 
+</html> 
+ 
+admin.py  
+ 
+from django.contrib import admin 
+from .models import Student, Course 
+from .forms import StudentForm 
+ 
+class StudentAdmin(admin.ModelAdmin): 
+    form = StudentForm 
+ 
+admin.site.register(Student, StudentAdmin) 
+admin.site.register(Course) 
+ 
+ 
+urls.py  
+from django.contrib import admin 
+from django.urls import path 
+from ap1.views import enrollment_list, reg 
+urlpatterns = [ 
+path('admin/', admin.site.urls), 
+path('reg/', reg), 
+path('enrollment-list/', enrollment_list, name='enrollment_list'), 
+] 
