@@ -1,0 +1,87 @@
+model.py
+
+from django.db import models 
+# Create your models here. 
+class Course(models.Model): 
+    course_code = models.CharField(max_length=40) 
+    course_name = models.CharField(max_length=100) 
+    course_credits = models.IntegerField() 
+ 
+    def __str__(self): 
+        return self.course_name 
+ 
+class Student(models.Model): 
+    student_usn = models.CharField(max_length=20) 
+    student_name = models.CharField(max_length=100) 
+    student_sem = models.IntegerField() 
+    enrolment = models.ManyToManyField(Course) 
+ 
+    def __str__(self): 
+        return self.student_name 
+ 
+ 
+ 
+admin.py  
+from django.contrib import admin  
+from ap1.models import Course, Student 
+# Register your models here. 
+admin.site.register(Course) 
+admin.site.register(Student) 
+ 
+ 
+urls.py  
+from django.contrib import admin 
+from django.urls import path 
+from django.views.generic import ListView, DetailView 
+from ap1.models import Student 
+ 
+student_list_info = { 
+    "model": Student, 
+    "context_object_name": "student_list",  # Ensure this matches the template variable 
+    "template_name": "student_list.html" 
+} 
+ 
+student_detail_info = { 
+    "model": Student, 
+    "context_object_name": "student",  # Ensure this matches the template variable 
+    "template_name": "student_detail.html" 
+} 
+ 
+urlpatterns = [ 
+    path('admin/', admin.site.urls), 
+    path('student_list/', ListView.as_view(**student_list_info), name='student_list'), 
+    path('student_detail/<int:pk>/', DetailView.as_view(**student_detail_info), 
+name='student_detail'), 
+] 
+
+
+In templates folder create the following two html files  
+student_list.html 
+<html> 
+<body> 
+{% if student_list %} 
+    <table border> 
+        <tr> 
+            <th>USN</th> 
+            <th>Courses Enrolled</th> 
+        </tr> 
+        {% for student in student_list %} 
+            <tr> 
+                <td><a href="/student_detail/{{student.pk}}"> 
+                    {{student.student_usn }}</a></td> 
+                <td> 
+                    {% for course in student.enrolment.all %} 
+                        <span>{{ course.course_name }}</span> 
+                    {% endfor %} 
+                </td> 
+            </tr> 
+        {% endfor %} 
+    </table> 
+{% else %} 
+    <h1>No Students Enrolled</h1> 
+{% endif %} 
+ 
+student_detail.html 
+<h1>Student Name: {{ student.student_name }}</h1> 
+<h1>Student USN: {{ student.student_usn }}</h1> 
+<h1>Student Sem: {{ student.student_sem }}</h1>
