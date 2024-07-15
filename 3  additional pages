@@ -1,0 +1,69 @@
+view.py
+from datetime import date 
+from django.http import HttpResponse from 
+django.shortcuts import render 
+from django.template import Context, Template 
+def home(request): 
+return render(request,'home.html') 
+def aboutus(request): 
+return render(request,'aboutus.html') 
+def contactus(request): 
+return render(request,'contactus.html') 
+
+URLS.py 
+from django.contrib import admin 
+from django.urls import path, re_path 
+from ap2.views import aboutus, home, contactus 
+urlpatterns = [ 
+path('admin/', admin.site.urls), 
+path('aboutus/', aboutus), 
+path('home/', home), 
+path('contactus/', contactus), 
+] 
+
+Template files: 
+layout.html 
+<html> 
+<title>{% block title %} {% endblock %} </title> 
+<style type="text/css"> 
+nav {background-color: lightblue;padding:10px} 
+</style> 
+<body> 
+<nav> 
+<a href="/home/">Home</a>| 
+<a href="/aboutus/">About Us</a>| 
+<a href="/contactus/">Contact Us</a>| 
+</nav> 
+<section> 
+{% block content %}{% endblock %} 
+</section> 
+<footer> 
+<hr> 
+</footer> 
+</body> 
+</ht> 
+
+home.html 
+{% extends 'layout.html' %} 
+{% block title %} 
+Home 
+{% endblock %} 
+{% block content %} 
+<h2>This is the home page</h2> 
+{% endblock %} 
+
+aboutus.html 
+{% extends 'layout.html' %} 
+{% block title %} 
+About Us 
+{% endblock %} 
+{% block content %} 
+<h2>We are DJango developers</h2> 
+{% endblock %} 
+
+contactus.html 
+{% extends 'layout.html' %} 
+{% block title %} Contact us {% endblock %} 
+{% block content %} 
+<h2>Out phone: 9900923050 <br> Address: K R Puram, Bangalore</h2> 
+{% endblock %} 
