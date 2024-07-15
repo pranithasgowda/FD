@@ -1,0 +1,18 @@
+In lab1 subfolder, make following changes to views.py: 
+from django.shortcuts import render 
+from django.http import HttpResponse 
+# Create your views here. 
+import datetime 
+def current_datetime(request): 
+now = datetime.datetime.now() 
+html = "<html><body><h1>It is now %s.</h1></body></html>" % now 
+return HttpResponse(html) 
+
+  
+In project named first, make following changes to urls.py 
+from django.contrib import admin 
+from django.urls import path 
+from lab11.views import current_datetime 
+urlpatterns = [ 
+path('cdt/', current_datetime), 
+] 
